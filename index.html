@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Multiplicaciones</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .problema {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        input {
+            font-size: 18px;
+            padding: 5px;
+            width: 100px;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #resultado {
+            margin-top: 10px;
+            font-size: 18px;
+        }
+        #puntuacion {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Juego de Multiplicaciones</h1>
+        <div class="problema" id="problema"></div>
+        <input type="number" id="respuesta" placeholder="Tu respuesta">
+        <button onclick="verificarRespuesta()">Comprobar</button>
+        <div id="resultado"></div>
+        <div id="puntuacion">Puntuación: <span id="aciertos">0</span> de <span id="total">0</span></div>
+    </div>
+
+    <script>
+        let num1, num2, respuestaCorrecta;
+        let aciertos = 0;
+        let total = 0;
+
+        function generarProblema() {
+            num1 = Math.floor(Math.random() * 10) + 1;
+            num2 = Math.floor(Math.random() * 10) + 1;
+            respuestaCorrecta = num1 * num2;
+            document.getElementById('problema').textContent = `${num1} × ${num2} = `;
+            document.getElementById('respuesta').value = '';
+            document.getElementById('resultado').textContent = '';
+        }
+
+        function verificarRespuesta() {
+            const respuestaUsuario = parseInt(document.getElementById('respuesta').value);
+            const resultadoDiv = document.getElementById('resultado');
+            total++;
+
+            if (respuestaUsuario === respuestaCorrecta) {
+                resultadoDiv.textContent = '¡Correcto! 🎉';
+                resultadoDiv.style.color = 'green';
+                aciertos++;
+            } else {
+                resultadoDiv.textContent = `Incorrecto. La respuesta correcta era ${respuestaCorrecta}`;
+                resultadoDiv.style.color = 'red';
+            }
+
+            document.getElementById('aciertos').textContent = aciertos;
+            document.getElementById('total').textContent = total;
+
+            setTimeout(generarProblema, 2000);
+        }
+
+        // Iniciar el juego
+        generarProblema();
+
+        // Permitir usar la tecla Enter para verificar la respuesta
+        document.getElementById('respuesta').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                verificarRespuesta();
+            }
+        });
+    </script>
+</body>
+</html> 
