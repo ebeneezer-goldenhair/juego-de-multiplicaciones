@@ -49,11 +49,68 @@
             font-size: 20px;
             margin-top: 10px;
         }
+        #temporizador {
+            font-size: 24px;
+            color: #666;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .barra-tiempo {
+            width: 200px;
+            height: 20px;
+            background-color: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .barra-progreso {
+            height: 100%;
+            background-color: #4CAF50;
+            transition: width 0.1s linear;
+        }
+        .tiempo-acabando .barra-progreso {
+            background-color: #ff0000;
+        }
+        .tiempo-acabando {
+            color: #ff0000;
+        }
+        .celebracion {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+        .confeti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: caida 3s linear forwards;
+        }
+        @keyframes caida {
+            0% {
+                transform: translateY(-10vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Juego de Multiplicaciones</h1>
+        <div id="temporizador">
+            <span class="tiempo-numero">5s</span>
+            <div class="barra-tiempo">
+                <div class="barra-progreso"></div>
+            </div>
+        </div>
         <div class="problema" id="problema"></div>
         <input type="number" id="respuesta" placeholder="Tu respuesta">
         <button onclick="verificarRespuesta()">Comprobar</button>
@@ -65,17 +122,96 @@
         let num1, num2, respuestaCorrecta;
         let aciertos = 0;
         let total = 0;
+        const TOTAL_PREGUNTAS = 10;
+        const TIEMPO_LIMITE = 7;
+        let multiplicacionesUsadas = new Set();
+        let temporador;
+
+        function iniciarTemporizador() {
+            let tiempoRestante = TIEMPO_LIMITE;
+            const temporizadorElement = document.getElementById('temporizador');
+            const tiempoNumero = temporizadorElement.querySelector('.tiempo-numero');
+            const barraProgreso = temporizadorElement.querySelector('.barra-progreso');
+            
+            clearInterval(temporador);
+            
+            tiempoNumero.textContent = `${tiempoRestante}s`;
+            barraProgreso.style.width = '100%';
+            temporizadorElement.classList.remove('tiempo-acabando');
+
+            temporador = setInterval(() => {
+                tiempoRestante--;
+                tiempoNumero.textContent = `${tiempoRestante}s`;
+                
+                // Actualizar la barra de progreso
+                const porcentaje = (tiempoRestante / TIEMPO_LIMITE) * 100;
+                barraProgreso.style.width = `${porcentaje}%`;
+                
+                if (tiempoRestante <= 2) {
+                    temporizadorElement.classList.add('tiempo-acabando');
+                }
+                
+                if (tiempoRestante <= 0) {
+                    clearInterval(temporador);
+                    tiempoAgotado();
+                }
+            }, 1000);
+        }
+
+        function tiempoAgotado() {
+            const resultadoDiv = document.getElementById('resultado');
+            total++;
+            
+            resultadoDiv.textContent = `¡Tiempo agotado! La respuesta correcta era ${respuestaCorrecta}`;
+            resultadoDiv.style.color = 'red';
+            
+            document.getElementById('aciertos').textContent = aciertos;
+            document.getElementById('total').textContent = total;
+
+            if (total < TOTAL_PREGUNTAS) {
+                setTimeout(generarProblema, 2000);
+            } else {
+                setTimeout(mostrarResultadoFinal, 2000);
+            }
+        }
+
+        function generarMultiplicacionUnica() {
+            let posiblesMultiplicaciones = [];
+            // Generar todas las posibles multiplicaciones del 1 al 10
+            for (let i = 1; i <= 10; i++) {
+                for (let j = 1; j <= 10; j++) {
+                    const key = `${i}-${j}`;
+                    if (!multiplicacionesUsadas.has(key)) {
+                        posiblesMultiplicaciones.push([i, j]);
+                    }
+                }
+            }
+
+            // Seleccionar una multiplicación aleatoria de las disponibles
+            const indiceAleatorio = Math.floor(Math.random() * posiblesMultiplicaciones.length);
+            const [n1, n2] = posiblesMultiplicaciones[indiceAleatorio];
+            multiplicacionesUsadas.add(`${n1}-${n2}`);
+            return [n1, n2];
+        }
 
         function generarProblema() {
-            num1 = Math.floor(Math.random() * 10) + 1;
-            num2 = Math.floor(Math.random() * 10) + 1;
+            if (total >= TOTAL_PREGUNTAS) {
+                mostrarResultadoFinal();
+                return;
+            }
+
+            [num1, num2] = generarMultiplicacionUnica();
             respuestaCorrecta = num1 * num2;
             document.getElementById('problema').textContent = `${num1} × ${num2} = `;
             document.getElementById('respuesta').value = '';
             document.getElementById('resultado').textContent = '';
+            iniciarTemporizador();
         }
 
         function verificarRespuesta() {
+            if (total >= TOTAL_PREGUNTAS) return;
+
+            clearInterval(temporador);
             const respuestaUsuario = parseInt(document.getElementById('respuesta').value);
             const resultadoDiv = document.getElementById('resultado');
             total++;
@@ -92,18 +228,103 @@
             document.getElementById('aciertos').textContent = aciertos;
             document.getElementById('total').textContent = total;
 
-            setTimeout(generarProblema, 2000);
+            if (total < TOTAL_PREGUNTAS) {
+                setTimeout(generarProblema, 2000);
+            } else {
+                setTimeout(mostrarResultadoFinal, 2000);
+            }
+        }
+
+        function mostrarResultadoFinal() {
+            const container = document.querySelector('.container');
+            const nota = (aciertos / TOTAL_PREGUNTAS) * 10;
+            
+            let mensaje = `
+                <h1>¡Juego terminado!</h1>
+                <div class="problema">
+                    Has acertado ${aciertos} de ${TOTAL_PREGUNTAS} preguntas<br>
+                    Tu nota final es: ${nota.toFixed(1)} / 10
+                </div>
+                <button onclick="reiniciarJuego()">Jugar de nuevo</button>
+            `;
+
+            if (nota === 10) {
+                mensaje = `
+                    <h1>🎉 ¡PERFECTO! 🎉</h1>
+                    <div class="problema">
+                        ¡Increíble! Has acertado todas las multiplicaciones<br>
+                        ¡Tu nota es un 10 / 10!<br>
+                        ¡Eres un/a campeón/a de las matemáticas! 🏆
+                    </div>
+                    <button onclick="reiniciarJuego()">Jugar de nuevo</button>
+                `;
+                crearCelebracion();
+            }
+
+            container.innerHTML = mensaje;
+        }
+
+        function crearCelebracion() {
+            const celebracion = document.createElement('div');
+            celebracion.className = 'celebracion';
+            document.body.appendChild(celebracion);
+
+            // Crear confeti de diferentes colores
+            const colores = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+            
+            for (let i = 0; i < 100; i++) {
+                const confeti = document.createElement('div');
+                confeti.className = 'confeti';
+                confeti.style.left = Math.random() * 100 + '%';
+                confeti.style.backgroundColor = colores[Math.floor(Math.random() * colores.length)];
+                confeti.style.animationDelay = Math.random() * 2 + 's';
+                celebracion.appendChild(confeti);
+            }
+
+            // Reproducir sonido de celebración
+            const audio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQwAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAADAAAGhgBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr///////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAAYbsYZqUAAAAAAAAAAAAAAAAAAAA//sQxAADwAABpAAAACAAADSAAAAETEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQxBmAEYABpAAAACAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQxDmAHoABpAAAACAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV');
+            audio.play();
+
+            // Eliminar la celebración después de la animación
+            setTimeout(() => {
+                document.body.removeChild(celebracion);
+            }, 5000);
+        }
+
+        function reiniciarJuego() {
+            aciertos = 0;
+            total = 0;
+            multiplicacionesUsadas.clear();
+            clearInterval(temporador);
+            document.querySelector('.container').innerHTML = `
+                <h1>Juego de Multiplicaciones</h1>
+                <div id="temporizador">
+                    <span class="tiempo-numero">5s</span>
+                    <div class="barra-tiempo">
+                        <div class="barra-progreso"></div>
+                    </div>
+                </div>
+                <div class="problema" id="problema"></div>
+                <input type="number" id="respuesta" placeholder="Tu respuesta">
+                <button onclick="verificarRespuesta()">Comprobar</button>
+                <div id="resultado"></div>
+                <div id="puntuacion">Puntuación: <span id="aciertos">0</span> de <span id="total">0</span></div>
+            `;
+            generarProblema();
+            agregarEventoEnter();
+        }
+
+        function agregarEventoEnter() {
+            document.getElementById('respuesta').addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    verificarRespuesta();
+                }
+            });
         }
 
         // Iniciar el juego
         generarProblema();
-
-        // Permitir usar la tecla Enter para verificar la respuesta
-        document.getElementById('respuesta').addEventListener('keyup', function(event) {
-            if (event.key === 'Enter') {
-                verificarRespuesta();
-            }
-        });
+        agregarEventoEnter();
     </script>
 </body>
 </html> 
