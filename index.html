@@ -1,246 +1,247 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego de Multiplicaciones</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #f0f0f0;
-        }
-        .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            margin-top: 20px;
-        }
-        .problema {
-            font-size: 24px;
-            margin: 20px 0;
-        }
-        input {
-            font-size: 18px;
-            padding: 5px;
-            width: 100px;
-        }
-        button {
-            font-size: 18px;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 10px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        #resultado {
-            margin-top: 10px;
-            font-size: 18px;
-        }
-        #puntuacion {
-            font-size: 20px;
-            margin-top: 10px;
-        }
-        #temporizador {
-            font-size: 24px;
-            color: #666;
-            margin: 10px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .barra-tiempo {
-            width: 200px;
-            height: 20px;
-            background-color: #eee;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .barra-progreso {
-            height: 100%;
-            background-color: #4CAF50;
-            transition: width 0.1s linear;
-        }
-        .tiempo-acabando .barra-progreso {
-            background-color: #ff0000;
-        }
-        .tiempo-acabando {
-            color: #ff0000;
-        }
-        .celebracion {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 999;
-        }
-        .confeti {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            animation: caida 3s linear forwards;
-        }
-        @keyframes caida {
-            0% {
-                transform: translateY(-10vh) rotate(0deg);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(100vh) rotate(360deg);
-                opacity: 0;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Juego de Multiplicaciones</h1>
-        <div id="temporizador">
-            <span class="tiempo-numero">5s</span>
-            <div class="barra-tiempo">
-                <div class="barra-progreso"></div>
-            </div>
-        </div>
-        <div class="problema" id="problema"></div>
-        <input type="number" id="respuesta" placeholder="Tu respuesta">
-        <button onclick="verificarRespuesta()">Comprobar</button>
-        <div id="resultado"></div>
-        <div id="puntuacion">Puntuación: <span id="aciertos">0</span> de <span id="total">0</span></div>
-    </div>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Juego de Multiplicaciones</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #f0f0f0;
+    }
 
-    <script type="module">
-        let num1, num2, respuestaCorrecta;
-        let aciertos = 0;
-        let total = 0;
-        const TOTAL_PREGUNTAS = 10;
-        const TIEMPO_LIMITE = 7;
-        let multiplicacionesUsadas = new Set();
-        let temporador;
+    .container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      margin-top: 20px;
+    }
 
-        function iniciarTemporizador() {
-            let tiempoRestante = TIEMPO_LIMITE;
-            const temporizadorElement = document.getElementById('temporizador');
-            const tiempoNumero = temporizadorElement.querySelector('.tiempo-numero');
-            const barraProgreso = temporizadorElement.querySelector('.barra-progreso');
+    .problema {
+      font-size: 24px;
+      margin: 20px 0;
+    }
 
-            clearInterval(temporador);
+    input {
+      font-size: 18px;
+      padding: 5px;
+      width: 100px;
+    }
 
-            tiempoNumero.textContent = `${tiempoRestante}s`;
-            barraProgreso.style.width = '100%';
-            temporizadorElement.classList.remove('tiempo-acabando');
+    button {
+      font-size: 18px;
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px;
+    }
 
-            temporador = setInterval(() => {
-                tiempoRestante--;
-                tiempoNumero.textContent = `${tiempoRestante}s`;
+    button:hover {
+      background-color: #45a049;
+    }
 
-                // Actualizar la barra de progreso
-                const porcentaje = (tiempoRestante / TIEMPO_LIMITE) * 100;
-                barraProgreso.style.width = `${porcentaje}%`;
+    #resultado {
+      margin-top: 10px;
+      font-size: 18px;
+    }
 
-                if (tiempoRestante <= 2) {
-                    temporizadorElement.classList.add('tiempo-acabando');
-                }
+    #puntuacion {
+      font-size: 20px;
+      margin-top: 10px;
+    }
 
-                if (tiempoRestante <= 0) {
-                    clearInterval(temporador);
-                    tiempoAgotado();
-                }
-            }, 1000);
+    #temporizador {
+      font-size: 24px;
+      color: #666;
+      margin: 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .barra-tiempo {
+      width: 200px;
+      height: 20px;
+      background-color: #eee;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .barra-progreso {
+      height: 100%;
+      background-color: #4CAF50;
+      transition: width 0.1s linear;
+    }
+
+    .tiempo-acabando .barra-progreso {
+      background-color: #ff0000;
+    }
+
+    .tiempo-acabando {
+      color: #ff0000;
+    }
+
+    .celebracion {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .confeti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      animation: caida 3s linear forwards;
+    }
+
+    @keyframes caida {
+      0% {
+        transform: translateY(-10vh) rotate(0deg);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+  </style>
+
+  <script>
+    let num1, num2, respuestaCorrecta;
+    let aciertos = 0;
+    let total = 0;
+    const TOTAL_PREGUNTAS = 10;
+    const TIEMPO_LIMITE = 7;
+    let multiplicacionesUsadas = new Set();
+    let temporador;
+
+    function iniciarTemporizador() {
+      let tiempoRestante = TIEMPO_LIMITE;
+      const temporizadorElement = document.getElementById('temporizador');
+      const tiempoNumero = temporizadorElement.querySelector('.tiempo-numero');
+      const barraProgreso = temporizadorElement.querySelector('.barra-progreso');
+
+      clearInterval(temporador);
+
+      tiempoNumero.textContent = `${tiempoRestante}s`;
+      barraProgreso.style.width = '100%';
+      temporizadorElement.classList.remove('tiempo-acabando');
+
+      temporador = setInterval(() => {
+        tiempoRestante--;
+        tiempoNumero.textContent = `${tiempoRestante}s`;
+
+        // Actualizar la barra de progreso
+        const porcentaje = (tiempoRestante / TIEMPO_LIMITE) * 100;
+        barraProgreso.style.width = `${porcentaje}%`;
+
+        if (tiempoRestante <= 2) {
+          temporizadorElement.classList.add('tiempo-acabando');
         }
 
-        function tiempoAgotado() {
-            const resultadoDiv = document.getElementById('resultado');
-            total++;
-
-            resultadoDiv.textContent = `¡Tiempo agotado! La respuesta correcta era ${respuestaCorrecta}`;
-            resultadoDiv.style.color = 'red';
-
-            document.getElementById('aciertos').textContent = aciertos;
-            document.getElementById('total').textContent = total;
-
-            if (total < TOTAL_PREGUNTAS) {
-                setTimeout(generarProblema, 2000);
-            } else {
-                setTimeout(mostrarResultadoFinal, 2000);
-            }
+        if (tiempoRestante <= 0) {
+          clearInterval(temporador);
+          tiempoAgotado();
         }
+      }, 1000);
+    }
 
-        function generarMultiplicacionUnica() {
-            let posiblesMultiplicaciones = [];
-            // Generar todas las posibles multiplicaciones del 1 al 10
-            for (let i = 1; i <= 10; i++) {
-                for (let j = 1; j <= 10; j++) {
-                    const key = `${i}-${j}`;
-                    if (!multiplicacionesUsadas.has(key)) {
-                        posiblesMultiplicaciones.push([i, j]);
-                    }
-                }
-            }
+    function tiempoAgotado() {
+      const resultadoDiv = document.getElementById('resultado');
+      total++;
 
-            // Seleccionar una multiplicación aleatoria de las disponibles
-            const indiceAleatorio = Math.floor(Math.random() * posiblesMultiplicaciones.length);
-            const [n1, n2] = posiblesMultiplicaciones[indiceAleatorio];
-            multiplicacionesUsadas.add(`${n1}-${n2}`);
-            return [n1, n2];
+      resultadoDiv.textContent = `¡Tiempo agotado! La respuesta correcta era ${respuestaCorrecta}`;
+      resultadoDiv.style.color = 'red';
+
+      document.getElementById('aciertos').textContent = aciertos;
+      document.getElementById('total').textContent = total;
+
+      if (total < TOTAL_PREGUNTAS) {
+        setTimeout(generarProblema, 2000);
+      } else {
+        setTimeout(mostrarResultadoFinal, 2000);
+      }
+    }
+
+    function generarMultiplicacionUnica() {
+      let posiblesMultiplicaciones = [];
+      // Generar todas las posibles multiplicaciones del 1 al 10
+      for (let i = 1; i <= 10; i++) {
+        for (let j = 1; j <= 10; j++) {
+          const key = `${i}-${j}`;
+          if (!multiplicacionesUsadas.has(key)) {
+            posiblesMultiplicaciones.push([i, j]);
+          }
         }
+      }
 
-        function generarProblema() {
-            if (total >= TOTAL_PREGUNTAS) {
-                mostrarResultadoFinal();
-                return;
-            }
+      // Seleccionar una multiplicación aleatoria de las disponibles
+      const indiceAleatorio = Math.floor(Math.random() * posiblesMultiplicaciones.length);
+      const [n1, n2] = posiblesMultiplicaciones[indiceAleatorio];
+      multiplicacionesUsadas.add(`${n1}-${n2}`);
+      return [n1, n2];
+    }
 
-            [num1, num2] = generarMultiplicacionUnica();
-            respuestaCorrecta = num1 * num2;
-            document.getElementById('problema').textContent = `${num1} × ${num2} = `;
-            document.getElementById('respuesta').value = '';
-            document.getElementById('resultado').textContent = '';
-            iniciarTemporizador();
-            document.getElementById('respuesta').focus();
-        }
+    function generarProblema() {
+      if (total >= TOTAL_PREGUNTAS) {
+        mostrarResultadoFinal();
+        return;
+      }
 
-        function verificarRespuesta() {
-            if (total >= TOTAL_PREGUNTAS) return;
+      [num1, num2] = generarMultiplicacionUnica();
+      respuestaCorrecta = num1 * num2;
+      document.getElementById('problema').textContent = `${num1} × ${num2} = `;
+      document.getElementById('respuesta').value = '';
+      document.getElementById('resultado').textContent = '';
+      iniciarTemporizador();
+      document.getElementById('respuesta').focus();
+    }
 
-            clearInterval(temporador);
-            const respuestaUsuario = parseInt(document.getElementById('respuesta').value);
-            const resultadoDiv = document.getElementById('resultado');
-            total++;
+    function verificarRespuesta() {
+      if (total >= TOTAL_PREGUNTAS) return;
 
-            if (respuestaUsuario === respuestaCorrecta) {
-                resultadoDiv.textContent = '¡Correcto! 🎉';
-                resultadoDiv.style.color = 'green';
-                aciertos++;
-            } else {
-                resultadoDiv.textContent = `Incorrecto. La respuesta correcta era ${respuestaCorrecta}`;
-                resultadoDiv.style.color = 'red';
-            }
+      clearInterval(temporador);
+      const respuestaUsuario = parseInt(document.getElementById('respuesta').value);
+      const resultadoDiv = document.getElementById('resultado');
+      total++;
 
-            document.getElementById('aciertos').textContent = aciertos;
-            document.getElementById('total').textContent = total;
+      if (respuestaUsuario === respuestaCorrecta) {
+        resultadoDiv.textContent = '¡Correcto! 🎉';
+        resultadoDiv.style.color = 'green';
+        aciertos++;
+      } else {
+        resultadoDiv.textContent = `Incorrecto. La respuesta correcta era ${respuestaCorrecta}`;
+        resultadoDiv.style.color = 'red';
+      }
 
-            if (total < TOTAL_PREGUNTAS) {
-                setTimeout(generarProblema, 2000);
-            } else {
-                setTimeout(mostrarResultadoFinal, 2000);
-            }
-        }
+      document.getElementById('aciertos').textContent = aciertos;
+      document.getElementById('total').textContent = total;
 
-        function mostrarResultadoFinal() {
-            const container = document.querySelector('.container');
-            const nota = (aciertos / TOTAL_PREGUNTAS) * 10;
+      if (total < TOTAL_PREGUNTAS) {
+        setTimeout(generarProblema, 2000);
+      } else {
+        setTimeout(mostrarResultadoFinal, 2000);
+      }
+    }
 
-            let mensaje = `
+    function mostrarResultadoFinal() {
+      const container = document.querySelector('.container');
+      const nota = (aciertos / TOTAL_PREGUNTAS) * 10;
+
+      let mensaje = `
                 <h1>¡Juego terminado!</h1>
                 <div class="problema">
                     Has acertado ${aciertos} de ${TOTAL_PREGUNTAS} preguntas<br>
@@ -249,8 +250,8 @@
                 <button onclick="reiniciarJuego()">Jugar de nuevo</button>
             `;
 
-            if (nota === 10) {
-                mensaje = `
+      if (nota === 10) {
+        mensaje = `
                     <h1>🎉 ¡PERFECTO! 🎉</h1>
                     <div class="problema">
                         ¡Increíble! Has acertado todas las multiplicaciones<br>
@@ -259,45 +260,45 @@
                     </div>
                     <button onclick="reiniciarJuego()">Jugar de nuevo</button>
                 `;
-                crearCelebracion();
-            }
+        crearCelebracion();
+      }
 
-            container.innerHTML = mensaje;
-        }
+      container.innerHTML = mensaje;
+    }
 
-        function crearCelebracion() {
-            const celebracion = document.createElement('div');
-            celebracion.className = 'celebracion';
-            document.body.appendChild(celebracion);
+    function crearCelebracion() {
+      const celebracion = document.createElement('div');
+      celebracion.className = 'celebracion';
+      document.body.appendChild(celebracion);
 
-            // Crear confeti de diferentes colores
-            const colores = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+      // Crear confeti de diferentes colores
+      const colores = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
 
-            for (let i = 0; i < 100; i++) {
-                const confeti = document.createElement('div');
-                confeti.className = 'confeti';
-                confeti.style.left = Math.random() * 100 + '%';
-                confeti.style.backgroundColor = colores[Math.floor(Math.random() * colores.length)];
-                confeti.style.animationDelay = Math.random() * 2 + 's';
-                celebracion.appendChild(confeti);
-            }
+      for (let i = 0; i < 100; i++) {
+        const confeti = document.createElement('div');
+        confeti.className = 'confeti';
+        confeti.style.left = Math.random() * 100 + '%';
+        confeti.style.backgroundColor = colores[Math.floor(Math.random() * colores.length)];
+        confeti.style.animationDelay = Math.random() * 2 + 's';
+        celebracion.appendChild(confeti);
+      }
 
-            // Reproducir sonido de celebración
-            const audio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQwAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAADAAAGhgBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr///////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAAYbsYZqUAAAAAAAAAAAAAAAAAAAA//sQxAADwAABpAAAACAAADSAAAAETEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQxBmAEYABpAAAACAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQxDmAHoABpAAAACAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV');
-            audio.play();
+      // Reproducir sonido de celebración
+      const audio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQwAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAADAAAGhgBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr///////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAAYbsYZqUAAAAAAAAAAAAAAAAAAAA//sQxAADwAABpAAAACAAADSAAAAETEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQxBmAEYABpAAAACAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQxDmAHoABpAAAACAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV');
+      audio.play();
 
-            // Eliminar la celebración después de la animación
-            setTimeout(() => {
-                document.body.removeChild(celebracion);
-            }, 5000);
-        }
+      // Eliminar la celebración después de la animación
+      setTimeout(() => {
+        document.body.removeChild(celebracion);
+      }, 5000);
+    }
 
-        function reiniciarJuego() {
-            aciertos = 0;
-            total = 0;
-            multiplicacionesUsadas.clear();
-            clearInterval(temporador);
-            document.querySelector('.container').innerHTML = `
+    function reiniciarJuego() {
+      aciertos = 0;
+      total = 0;
+      multiplicacionesUsadas.clear();
+      clearInterval(temporador);
+      document.querySelector('.container').innerHTML = `
                 <h1>Juego de Multiplicaciones</h1>
                 <div id="temporizador">
                     <span class="tiempo-numero">5s</span>
@@ -311,21 +312,42 @@
                 <div id="resultado"></div>
                 <div id="puntuacion">Puntuación: <span id="aciertos">0</span> de <span id="total">0</span></div>
             `;
-            generarProblema();
-            agregarEventoEnter();
-        }
+      generarProblema();
+      agregarEventoEnter();
+    }
 
-        function agregarEventoEnter() {
-            document.getElementById('respuesta').addEventListener('keyup', function(event) {
-                if (event.key === 'Enter') {
-                    verificarRespuesta();
-                }
-            });
+    function agregarEventoEnter() {
+      document.getElementById('respuesta').addEventListener('keyup', function (event) {
+        if (event.key === 'Enter') {
+          verificarRespuesta();
         }
+      });
+    }
+  </script>
+  <script type="module">
+    // Iniciar el juego
+    generarProblema();
+    agregarEventoEnter();
+  </script>
+</head>
 
-        // Iniciar el juego
-        generarProblema();
-        agregarEventoEnter();
-    </script>
+<body>
+
+
+  <div class="container">
+    <h1>Juego de Multiplicaciones</h1>
+    <div id="temporizador">
+      <span class="tiempo-numero">5s</span>
+      <div class="barra-tiempo">
+        <div class="barra-progreso"></div>
+      </div>
+    </div>
+    <div class="problema" id="problema"></div>
+    <input type="number" id="respuesta" placeholder="Tu respuesta">
+    <button onclick="verificarRespuesta()">Comprobar</button>
+    <div id="resultado"></div>
+    <div id="puntuacion">Puntuación: <span id="aciertos">0</span> de <span id="total">0</span></div>
+  </div>
 </body>
-</html> 
+
+</html>
