@@ -132,9 +132,9 @@
             const temporizadorElement = document.getElementById('temporizador');
             const tiempoNumero = temporizadorElement.querySelector('.tiempo-numero');
             const barraProgreso = temporizadorElement.querySelector('.barra-progreso');
-            
+
             clearInterval(temporador);
-            
+
             tiempoNumero.textContent = `${tiempoRestante}s`;
             barraProgreso.style.width = '100%';
             temporizadorElement.classList.remove('tiempo-acabando');
@@ -142,15 +142,15 @@
             temporador = setInterval(() => {
                 tiempoRestante--;
                 tiempoNumero.textContent = `${tiempoRestante}s`;
-                
+
                 // Actualizar la barra de progreso
                 const porcentaje = (tiempoRestante / TIEMPO_LIMITE) * 100;
                 barraProgreso.style.width = `${porcentaje}%`;
-                
+
                 if (tiempoRestante <= 2) {
                     temporizadorElement.classList.add('tiempo-acabando');
                 }
-                
+
                 if (tiempoRestante <= 0) {
                     clearInterval(temporador);
                     tiempoAgotado();
@@ -161,10 +161,10 @@
         function tiempoAgotado() {
             const resultadoDiv = document.getElementById('resultado');
             total++;
-            
+
             resultadoDiv.textContent = `¡Tiempo agotado! La respuesta correcta era ${respuestaCorrecta}`;
             resultadoDiv.style.color = 'red';
-            
+
             document.getElementById('aciertos').textContent = aciertos;
             document.getElementById('total').textContent = total;
 
@@ -206,6 +206,7 @@
             document.getElementById('respuesta').value = '';
             document.getElementById('resultado').textContent = '';
             iniciarTemporizador();
+            document.getElementById('respuesta').focus();
         }
 
         function verificarRespuesta() {
@@ -238,7 +239,7 @@
         function mostrarResultadoFinal() {
             const container = document.querySelector('.container');
             const nota = (aciertos / TOTAL_PREGUNTAS) * 10;
-            
+
             let mensaje = `
                 <h1>¡Juego terminado!</h1>
                 <div class="problema">
@@ -271,7 +272,7 @@
 
             // Crear confeti de diferentes colores
             const colores = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
-            
+
             for (let i = 0; i < 100; i++) {
                 const confeti = document.createElement('div');
                 confeti.className = 'confeti';
