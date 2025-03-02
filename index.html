@@ -178,17 +178,39 @@
 
     function generarMultiplicacionUnica() {
       let posiblesMultiplicaciones = [];
-      // Generar todas las posibles multiplicaciones del 1 al 10
-      for (let i = 1; i <= 10; i++) {
-        for (let j = 1; j <= 10; j++) {
-          const key = `${i}-${j}`;
-          if (!multiplicacionesUsadas.has(key)) {
-            posiblesMultiplicaciones.push([i, j]);
+
+      // Si aún no hemos usado todas las tablas, priorizamos las que faltan
+      let tablasUsadas = new Set([...multiplicacionesUsadas].map(key => key.split('-')[0]));
+
+      if (tablasUsadas.size < 9) { // 9 tablas (del 2 al 10)
+        // Encontrar una tabla que no se haya usado
+        for (let i = 2; i <= 10; i++) {
+          if (!tablasUsadas.has(i.toString())) {
+            // Generar una multiplicación con esta tabla
+            for (let j = 2; j <= 10; j++) {
+              const key = `${i}-${j}`;
+              if (!multiplicacionesUsadas.has(key)) {
+                posiblesMultiplicaciones.push([i, j]);
+              }
+            }
+            if (posiblesMultiplicaciones.length > 0) break;
           }
         }
       }
 
-      // Seleccionar una multiplicación aleatoria de las disponibles
+      // Si ya usamos al menos una vez cada tabla o no hay multiplicaciones disponibles
+      // de las tablas faltantes, usar cualquier multiplicación restante
+      if (posiblesMultiplicaciones.length === 0) {
+        for (let i = 2; i <= 10; i++) {
+          for (let j = 2; j <= 10; j++) {
+            const key = `${i}-${j}`;
+            if (!multiplicacionesUsadas.has(key)) {
+              posiblesMultiplicaciones.push([i, j]);
+            }
+          }
+        }
+      }
+
       const indiceAleatorio = Math.floor(Math.random() * posiblesMultiplicaciones.length);
       const [n1, n2] = posiblesMultiplicaciones[indiceAleatorio];
       multiplicacionesUsadas.add(`${n1}-${n2}`);
@@ -241,26 +263,42 @@
       const container = document.querySelector('.container');
       const nota = (aciertos / TOTAL_PREGUNTAS) * 10;
 
-      let mensaje = `
-                <h1>¡Juego terminado!</h1>
-                <div class="problema">
-                    Has acertado ${aciertos} de ${TOTAL_PREGUNTAS} preguntas<br>
-                    Tu nota final es: ${nota.toFixed(1)} / 10
-                </div>
-                <button onclick="reiniciarJuego()">Jugar de nuevo</button>
-            `;
+      let mensaje;
 
       if (nota === 10) {
         mensaje = `
-                    <h1>🎉 ¡PERFECTO! 🎉</h1>
-                    <div class="problema">
-                        ¡Increíble! Has acertado todas las multiplicaciones<br>
-                        ¡Tu nota es un 10 / 10!<br>
-                        ¡Eres un/a campeón/a de las matemáticas! 🏆
-                    </div>
-                    <button onclick="reiniciarJuego()">Jugar de nuevo</button>
-                `;
+          <h1>🎉 ¡PERFECTO! 🎉</h1>
+          <div class="problema">
+              ¡Increíble! Has acertado todas las multiplicaciones<br>
+              ¡Tu nota es un 10 / 10!<br>
+              ¡Eres un/a campeón/a de las matemáticas! 🏆
+          </div>
+          <button onclick="reiniciarJuego()">Jugar de nuevo</button>
+        `;
         crearCelebracion();
+      } else if (nota <= 5) {
+        mensaje = `
+          <h1>😕 ¡Necesitas practicar más! 😕</h1>
+          <div class="problema">
+              Has acertado ${aciertos} de ${TOTAL_PREGUNTAS} preguntas<br>
+              Tu nota es: ${nota.toFixed(1)} / 10<br>
+              ¡No te desanimes! Con más práctica lo conseguirás 💪<br>
+              ¡Inténtalo de nuevo!
+          </div>
+          <button onclick="reiniciarJuego()">Intentar otra vez</button>
+        `;
+        // Reproducir sonido de "necesita mejorar"
+        const audio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQwAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAADAAAGhgBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr///////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAAAaG5DurWQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//sQxAADwAABpAAAACAAADSAAAAETEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQxBmDwAABpAAAACAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQxDmDwAABpAAAACAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV');
+        audio.play();
+      } else {
+        mensaje = `
+          <h1>¡Juego terminado!</h1>
+          <div class="problema">
+              Has acertado ${aciertos} de ${TOTAL_PREGUNTAS} preguntas<br>
+              Tu nota final es: ${nota.toFixed(1)} / 10
+          </div>
+          <button onclick="reiniciarJuego()">Jugar de nuevo</button>
+        `;
       }
 
       container.innerHTML = mensaje;
